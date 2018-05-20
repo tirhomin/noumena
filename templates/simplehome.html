@@ -1,0 +1,171 @@
+
+<html><head>
+<meta charset="UTF-8">
+<link href="/static/style2.css" rel="stylesheet">
+<script src="/static/jquery-3.1.1.min.js"></script>
+<script src='/static/spectrum.js'></script>
+<link rel='stylesheet' href='/static/spectrum.css' />
+<script src="/static/noumena.js"></script>
+<!-- jQuery Modal -->
+    <script src="/static/jquery.modal.js"></script>
+    <link rel="stylesheet" href="/static/jquery.modal.min.css" />
+    <link href="https://fonts.googleapis.com/css?family=Comfortaa" rel="stylesheet"> 
+</head><body><!--
+
+    <div class="gdpr-flag">
+            <div class="gdpr-flagarrow"></div>
+            <div class="gdpr-flagtext"> 
+                INFO
+            </div>
+        </div>
+        <br>
+        <br>
+        <br>
+
+-->
+    
+    <input type="hidden" id="low" value="{{session['low']}}">
+    <input type="hidden" id="medium" value="{{session['medium']}}">
+    <input type="hidden" id="high" value="{{session['high']}}">
+    <input type="hidden" id="risk" value="{{session['risk']}}">
+    <input type="hidden" id="mode" value="{{session['mode']}}">
+
+<!-- require keywords and corpus at same time? no, let add just keywords -->
+<div id="dictionary">
+    <div id="dictx"><span style="display:inline-block; padding:0.5ex 1ex 0.5ex 0.5ex; font-weight:bold;">✕</span></div>
+    <div id="dictword">word</div>
+    <div id="dictdef">definition</div>
+</div>
+    <div id="corpus-container">
+      <div id="toolbar" class="toolbar">
+          {% if loggedin %}
+          <div class="toolsection" id="fileuploads">
+            <span style="display:inline-block; font-weight:bold; padding:1ex; font-size:1.2em;">URL of Privacy Policy:</span><br>
+            <div style="display:none;">
+                            <form action="upload" method="post" enctype="multipart/form-data">
+                                current file: <span style="font-weight:bold;">{{filename}}</span><br><br>
+                                <div class="choosefile">
+                                    <div class="filename" id="corpusfilename"><span style="color:#aaa;">no file chosen</span></div>
+                                    <input type="file" name="corpusfile" id="corpusfile" style="display:none;">
+                                    <input class="filebtn" type="button" value="add text file" onclick="document.getElementById('corpusfile').click();" />
+                                </div>
+                                <div class="choosefile">
+                                    <div class="filename" id="keywordfilename"><span style="color:#aaa;">no file chosen</span></div>
+                                    <input type="file" name="keywordfile" id="keywordfile" style="display:none;">
+                                    <input class="filebtn" type="button" value="add keyword file" onclick="document.getElementById('keywordfile').click();" />
+                                </div>
+
+                                <input class="filebtn" id="submitfiles" type="submit" value="upload" name="submit">
+                                <br>
+                            </form>
+                        </div>
+
+                            <form action="addtermsurl" method="post">
+                                <div>&nbsp;
+                                    <input style="display:inline-block; width:54ex;" type="text" name="termsurl" placeholder="https://policies.google.com/privacy" value="https://policies.google.com/privacy" required>
+                                    <input style="display:inline-block;" class="narrowbtn" type="submit" value="fetch document" name="submit">
+                                </div>
+                            </form>
+                {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <h2 style="color:#d00;">
+                    {% for message in messages %}{{ message }}{% endfor %}
+                    </h2>
+                {% endif %}
+                {% endwith %}
+        <br>
+        </div>
+          <div class="toolsection">
+              <div style="display:none;">
+              <form action="settings" method="post">
+                  risk:<select id ="riskchoice" name="risk">
+                      <option value="low" {{'selected' if session['risk']=='low'}}>low</option>
+                      <option value="medium" {{'selected' if session['risk']=='medium'}}>medium</option>
+                      <option value="high" {{'selected' if session['risk']=='high'}}>high</option>
+                  </select>
+                  <input type='text' id="riskcolor" class="custom riskcolor"/><br>
+                  <hr>
+                  mode: <select id ="modechoice" name="mode">
+                    <option value="keyword" {{'selected' if mode == 'keyword' else ''}}>keyword</option>
+                    <option value="profile" {{'selected' if mode == 'profile' else ''}}>profile</option>
+                  </select>
+              </form>
+              <span id="colorlog"></span>
+            </div>
+
+              <!--CURRENT MODE:{{session['mode']}}-->
+
+          </div>
+          {%else%}
+
+          <div class="toolsection" id="cookiewarning">
+                This site uses cookies to allow you to log in and to remember your settings.
+                <br>
+                By logging in or continuing to use the site, you consent to the use of cookies.
+                <br>
+                <a href="/terms">more info</a>
+          </div>    
+
+          <div class="toolsection" style="height:10ex;"></div>
+  
+          {%endif%}
+  
+          <div id="login">
+              {% if not loggedin %}
+    
+              <form action="login" method="POST">
+                  <input type="text" name="username" placeholder="username"><br>
+                  <input type="password" name="password" placeholder="password"><br>
+                  <input type="submit" value="login / create account" name="submit">
+              </form>
+              {% else %}
+              <div class="fdiv" style="text-align:center; padding-top:1ex; width:25%;">
+                  <h1 id="logo"><!--📖--></h1>
+              </div>
+              <div class="fdiv" style="border-bottom:1px solid #ccc;">
+                  <a href="/logout">LOGOUT</a> |
+                  <a href="/help">HELP</a> |
+                  <a href="/advanced">ADVANCED</a>
+                  {{'| <a href="/admin">admin page</a>'|safe if admin else ''}}
+              </div>
+              {% endif %}
+          </div>
+      </div>
+    <div id="content"><!-- stuff under the top toolbar-->
+    {% if loggedin %}
+
+      <div id="lefttoolbar">
+        <form action="/settings/keywords" method="POST">
+            <b style="display:block;padding-bottom:1ex;">Keywords and key phrases to highlight:</b>
+            <input type = "hidden" id="scrollpos" name="scrollpos" value="{{scrollpos}}">
+          {% for i in [1,2,3,4,5,6,7] %}
+          <div class="keywordcolor" style="{{'display:none;' if i>1 else ''}}">
+            <div style="float:left;">COLOR<br>
+              <input type='text' id="color{{i}}" class='custom kwcolor' value="{{'#'+kwcolors[i]}}"/>
+            </div>
+            <textarea name="keywords{{i}}" class="keywords" placeholder="keyword, key phrase, keyword2, keyword3">{{keywords[i]}}</textarea>
+          </div>
+          {% endfor %}
+          <input type="submit" value="UPDATE KEYWORDS" id="keywordbutton">
+          <br>
+        </form>
+      </div>
+      {%endif%}
+
+        <div id="corpus">
+            <div id="corpustext"><br>
+                {{corpus|safe}}
+            </div>
+        </div>
+        <div style="clear:both;"></div>
+    </div><!-- end stuff under the top toolbar -->
+    </div>
+<!-- Modal HTML embedded directly into document -->
+<div id="ex1" class="modal" style="width:780px !important; height:500px !important;">
+        <a id="modalclose" href="#" rel="modal:close"></a>
+        
+      </div>
+      
+      <!-- Link to open the modal -->
+
+</body></html>

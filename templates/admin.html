@@ -1,0 +1,54 @@
+<html><head>
+    <style type="text/css">
+        body{font-family:monospace; font-size:1.2em;}
+        .col{display:inline-block; width:24ex; padding:1ex;vertical-align:top;}
+        .row:nth-child(even){background-color:#eee;}
+        .header{background-color:#ccc; color:black; text-transform:uppercase;}
+        .kcolor{display:inline-block; width:1em; height:1em; margin-right:0.5ex;}
+    </style>
+    </head>
+<body>
+    <div style="border:1px solid #ccc; display:inline-block; background-color:#eee; margin:1ex; padding:1ex;">
+        <a href="/admin/download">Download Survey Data CSV</a><br>
+        <a href="/static/admin.dict.txt">download current dictionary</a>
+        <h3>Change admin dictionary:</h3>
+        <form action="/admin/dict" method="post" enctype="multipart/form-data">
+            <input type="file" name="dictfile">
+            <input type="submit" value="upload">
+        </form>
+    </div>
+<div style="border:1px solid black;">
+    <div class="row header">
+        <div class="col">username</div>
+        <div class="col" style="width:40ex;">mode</div>
+        <div class="col">risk level</div>
+        <div class="col">filename</div>
+        <div class="col">viewed video</div>
+        <div class="col">OPTIONS</div>
+    </div>
+    {%for user,gdict in results%}
+        <div class="row">
+            <div class="col">
+                {{user['username'][:16]}}{{'...' if user['username']|length > 16 else ''}}<br>
+                {#<a href="/admin/survey/PCD">survey</a>#}        
+            </div>
+        
+    
+            <div class="col" style="width:40ex;">
+                <span style="font-weight:bold;">{{user['mode']}}</span>
+                {%for group in gdict%}
+                <div style="margin-bottom:1ex;">
+                    <span class="kcolor" style="background-color:#{{gdict[group]['color']}};">
+                        {{group}}
+                    </span>
+                    {{gdict[group]['keywords']}}
+                </div> 
+                {%endfor%}
+            </div>
+            <div class="col">{{user['risk']}}</div>
+            <div class="col">{{user['textfilename']}}</div>
+            <div class="col">{{'True' if user['viewedvideo'] else 'False'}}</div>
+            <div class="col"><a href="/admin/delete?user={{username}}">DELETE?</a></div>
+        </div>
+    {%endfor%}
+</div></body></html>

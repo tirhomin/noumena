@@ -1,0 +1,68 @@
+<html><head>
+<meta charset="UTF-8">
+<link href="/static/style.css" rel="stylesheet">
+<script src="/static/jquery-3.1.1.min.js"></script>
+<script src='/static/spectrum.js'></script>
+<link rel='stylesheet' href='/static/spectrum.css' />
+<script src="/static/noumena.js"></script>
+</head><body>
+    <input type="hidden" id="low" value="{{session['low']}}">
+    <input type="hidden" id="medium" value="{{session['medium']}}">
+    <input type="hidden" id="high" value="{{session['high']}}">
+    <input type="hidden" id="risk" value="{{session['risk']}}">
+    <input type="hidden" id="mode" value="{{session['mode']}}">
+
+<!-- require keywords and corpus at same time? no, let add just keywords -->
+<div id="progressbarcontainer">
+    <span>Survey Progress Meter</span>
+    <div id="progressbar"></div>
+</div>
+<div id="corpus-container">
+        <h2> Feedback Survey </h2>
+        {% if not tvars['admin'] %}
+          <a href="/">HOME</a><br><br>
+        {%else%}
+            <a href="/admin">BACK</a><br><br>
+
+        {%endif%}
+
+        <form action="/feedback" method="POST">
+
+        {% if tvars['admin']==True %}
+            <!--ProlificID (if applicable)--><input type="hidden" name="prolificid" value="{{tvars['prolificid']}}">
+        {%else%}
+            <!--ProlificID (if applicable)--><input type="hidden" name="prolificid">
+        {%endif%}
+
+        {% for c in range(1,20) %}
+        <div class="question">
+        <span class="qtext">{{tvars['questions'][c-1]}}</span>
+            <div class="answer">
+                <label><input class="fback" type="radio" name="{{'q%d' %c}}" value="7" {{'checked' if tvars['q%d' %c] == 7}} required autocomplete=off>Strongly Agree<br>
+                    <input class="fback" type="radio" name="{{'q%d' %c}}" value="6" {{'checked' if tvars['q%d' %c] == 6}} autocomplete=off>Agree<br>
+                    <input class="fback" type="radio" name="{{'q%d' %c}}" value="5" {{'checked' if tvars['q%d' %c] == 5}} autocomplete=off>Somewhat Agree<br>
+                    <input class="fback" type="radio" name="{{'q%d' %c}}" value="4" {{'checked' if tvars['q%d' %c] == 4}} autocomplete=off>Neither Agree nor Disagree<br>
+                    <input class="fback" type="radio" name="{{'q%d' %c}}" value="3" {{'checked' if tvars['q%d' %c] == 3}} autocomplete=off>Somewhat Disagree<br>
+                    <input class="fback" type="radio" name="{{'q%d' %c}}" value="2" {{'checked' if tvars['q%d' %c] == 2}} autocomplete=off>Disagree<br>
+                    <input class="fback" type="radio" name="{{'q%d' %c}}" value="1" {{'checked' if tvars['q%d' %c] == 1}} autocomplete=off>Strongly Disagree<br>                   
+                    &nbsp;&nbsp;<input class="fback" type="radio" name="{{'q%d' %c}}" value="0" {{'checked' if tvars['q%d' %c] == 0}} autocomplete=off>Not Applicable
+                </label>
+            </div>
+            <div class="answer">
+                <textarea name="{{'qtext%d' %c}}" rows=3 cols=42 
+                    placeholder='please enter any additional comments here'>{{'%s'%tvars['qtext%d' %c] if tvars['qtext%d' %c] else ''}}</textarea>   
+            </div>
+        </div>
+        <!-- ####################### -->
+        {% endfor %}
+        <br>
+    {% if not tvars['admin'] %}
+    <input type="submit" value="SUBMIT" style="background-color:#37c; color:white; padding:1ex; border-radius:1ex; border:1px solid #59E; cursor:pointer;">
+    <a href="/" style="background-color:#aaa; color:white; padding:1ex; border-radius:1ex; border:1px solid #59E; text-decoration:none;">CANCEL &amp; DISCARD SURVEY</a>
+    {%endif%}
+    <br>
+    <br>
+    <br>
+    </form>
+    </div>
+</body></html>

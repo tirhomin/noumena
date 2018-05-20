@@ -1,0 +1,21 @@
+<html><head>
+<meta charset="UTF-8">
+<link href="/static/style.css" rel="stylesheet">
+<script src="/static/jquery-3.1.1.min.js"></script>
+<script src='/static/spectrum.js'></script>
+<link rel='stylesheet' href='/static/spectrum.css' />
+<script src="/static/noumena.js"></script>
+</head><body>
+    <input type="hidden" id="low" value="{{session['low']}}">
+    <input type="hidden" id="medium" value="{{session['medium']}}">
+    <input type="hidden" id="high" value="{{session['high']}}">
+    <input type="hidden" id="risk" value="{{session['risk']}}">
+    <input type="hidden" id="mode" value="{{session['mode']}}">
+
+<!-- require keywords and corpus at same time? no, let add just keywords -->
+    <div id="corpus-container">
+        <h2> Site Help </h2>
+        <a href="/">HOME</a><br><br>
+        
+    </div>
+</body></html>

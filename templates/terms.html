@@ -1,0 +1,36 @@
+<html><head>
+<meta charset="UTF-8">
+<link href="/static/style.css" rel="stylesheet">
+<script src="/static/jquery-3.1.1.min.js"></script>
+<script src='/static/spectrum.js'></script>
+<link rel='stylesheet' href='/static/spectrum.css' />
+<script src="/static/noumena.js"></script>
+</head><body>
+    <input type="hidden" id="low" value="{{session['low']}}">
+    <input type="hidden" id="medium" value="{{session['medium']}}">
+    <input type="hidden" id="high" value="{{session['high']}}">
+    <input type="hidden" id="risk" value="{{session['risk']}}">
+    <input type="hidden" id="mode" value="{{session['mode']}}">
+
+<!-- require keywords and corpus at same time? no, let add just keywords -->
+    <div id="corpus-container">
+        <h2> Terms of Service &amp; Privacy Information </h2>
+        <a href="/">HOME</a><br><br>
+            <div style="text-align:left; padding-left:3em; max-width:80ex;">
+                <section>
+                    <h3>About this Site:</h3>
+                    <p>
+                        This is an academic experiment for noncommercial research purposes.
+                    </p>
+                </section>
+                <section>
+                    <h3>Privacy Information:</h3>
+                    <p>We recommend you choose a username that does not disclose any personal information, such as your real name or email address; in order to preserve anonymity, you may choose a generic username if you wish; it does not need to be an email address.</p>
+                    <p>We use cookies because it is a technical requirement, otherwise you would not be able to log in. These cookies only store information you explicitly provide us, such as your username and site preferences.</p>
+                    <p>We will not sell or disclose your information to third-party companies or organizations.</p>
+                    <p>Your information will only be used by us to analyze this academic research experiment and not for any other purpose.</p>
+                </section>
+                <br><br><br><br>
+        </div>
+    </div>
+</body></html>

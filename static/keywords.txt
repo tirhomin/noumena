@@ -1,0 +1,6 @@
+Copyright,Arbritation, Indemnification
+Warranty, Corruption of data, Disclaimer of Warranties, Termination,Changes
+Partner,Advertisement,Intellectual Property,Copyright Infringement,Automatic Renewal
+Responsibility,Policy,opt out,opt-out,opt-in,opt in
+Limitation of Liability,personal information,information we collect,Personally Identifiable Information,PII
+Geo-location,Social Security Number,name,address,date of birth,email address,phone number,IP Address,share,Privacy Protection Policy

@@ -1,0 +1,77 @@
+<html><head>
+<meta charset="UTF-8">
+<link href="/static/style.css" rel="stylesheet">
+<script src="/static/jquery-3.1.1.min.js"></script>
+<script src='/static/spectrum.js'></script>
+<link rel='stylesheet' href='/static/spectrum.css' />
+<script src="/static/noumena.js"></script>
+</head><body>
+    <input type="hidden" id="low" value="{{session['low']}}">
+    <input type="hidden" id="medium" value="{{session['medium']}}">
+    <input type="hidden" id="high" value="{{session['high']}}">
+    <input type="hidden" id="risk" value="{{session['risk']}}">
+    <input type="hidden" id="mode" value="{{session['mode']}}">
+
+<!-- require keywords and corpus at same time? no, let add just keywords -->
+    <div id="corpus-container">
+        <h2> Site Help </h2>
+        <a href="/">HOME</a><br><br>
+            <div style="text-align:left; padding-left:3em; max-width:80ex;">
+                    <section>
+                            <h3>Terms &amp; Privacy</h3>
+                            <p>Our terms &amp; privacy information can be found on the <a href="/terms">terms</a> page.
+                                
+                    </section>                            
+                <section>
+                    <h3>Login / Sign Up</h3>
+                    <p>Our sign-up process is very simple:
+                        if you type a username and password into the Login box, and that username doesn't exist,
+                        we'll create a new account with that username for you and log you in automatically.
+                    </p>
+                    <p>However, we currently do not have a password recovery mechanism or email support --
+                        if you find yourself locked out of your account, simply create a new one.
+                    </p>
+                    <p>To logout, you can click the button on the top right of the top toolbar.</p>
+                </section>
+                <section>
+                    <h3>Simple Mode &amp; Advanced Mode</h3>
+                    <p>Noumena has two modes, one simple, in which you choose a single highlight color and set of keyphrases to scan for, and Noumena will scan for your phrases in the document, highlighting paragraphs containing your phrase. Noumena also performs some advanced search methods to find anything related to the GDPR or your personal data, and highlights (unless already highlighted) and flags these paragraphs also.</p>
+                    <p>By switching to Advanced mode on the top right of the page, you'll find an Intro Video, a feedback page, and many more tools and features.<p>
+                </section>
+    
+                <section>
+                    <h3>Using the Site</h3>
+                    <p>Once you have signed up, using the site is as simple as uploading a text file, e.g. a terms of service, EULA, contract, or other document you would like to examine. All you have to do after that is type some keywords or phrases into the keyword boxes on the left toolbar and click Update.</p>
+                    <p>Note that for text files and keyword files, both of these are optional, you can choose to update one or the other, or both simultaneously.<p>
+                </section>
+                <section>
+                    <h3>Keywords and Keyword File Format</h3>
+                    <p>The keywords boxes can contain words or phrases separated by commas, for example:</p>
+                    <p style="font-style:italic;">arbitration, waiver, Limitation of Liability,personal information,information we collect</p>
+                    <p>note that keywords are case-insensitive</p>
+                    <p>For the keywords file, it's the same comma-separated keywords and key-phrases, and in the case of the file, it is expected to be 6 (or fewer) lines, the top line being associated with the Group 1 keyword box, the second line with Group 2, etc. <a href="/static/keywords.txt">example</a></p>
+                    <p>also note that if you upload a keywords file, it will erase the contents of your keyword boxes and replace these with the contents of the file</p>
+                </section>
+                <section>
+                    <h3>Modes &amp; Risk Levels</h3>
+                    <p>You can switch modes between "keyword" and "profile", where keyword highlights keywords according to their group color, profile mode will override this and highlight all things in a single color.</p>
+                    <p>Risk levels are determined by you, the user, i.e. if you are in "risk" mode and have chosen "high" as your risk level, because for example you are reading an important document, all highlights in that document will be by default red, for high risk. This will alert you to the fact that you are reading something important. You are free to change the risk level colors to whatever best suits you.</p>
+                </section>
+                <section>
+                    <h3>Dictionary</h3>
+                    <p>Clicking a highlighted section of the text will pop up (in the top right corner of the page) a dictionary definition window showing you which word or phrase caused that section to be highlighted, and a dictionary definition of it, if available.</p>
+                    <p>You can close the dictionary at any time by clicking the X or anywhere on the top bar of the dictionary pane.</p>
+                </section>
+                <section>
+                    <h3>Other Features</h3>
+                    <p>Your scroll position will be remembered in long documents so that you can resume reading at the correct position when you log in again</p>
+
+                </section>
+                <section>
+                    <h3>Survey</h3>
+                    <p>We would love to hear more about your experience with our site, and have created a survey <a href="/feedback">here</a> and would be grateful if you completed one.
+                </section>
+                <br><br><br><br>
+        </div>
+    </div>
+</body></html>
