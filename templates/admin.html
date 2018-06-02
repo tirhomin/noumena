@@ -29,7 +29,7 @@
     {%for user,gdict in results%}
         <div class="row">
             <div class="col">
-                {{user['username'][:16]}}{{'...' if user['username']|length > 16 else ''}}<br>
+                <a href="/swapuser?user={{user['username']}}">{{user['username'][:16]}}{{'...' if user['username']|length > 16 else ''}}</a><br>
                 {#<a href="/admin/survey/PCD">survey</a>#}        
             </div>
         
@@ -46,7 +46,7 @@
                 {%endfor%}
             </div>
             <div class="col">{{user['risk']}}</div>
-            <div class="col">{{user['textfilename']}}</div>
+            <div class="col" style="width:40ex; word-break: break-all; word-wrap: break-word;">{{user['textfilename']}}</div>
             <div class="col">{{'True' if user['viewedvideo'] else 'False'}}</div>
             <div class="col"><a href="/admin/delete?user={{username}}">DELETE?</a></div>
         </div>

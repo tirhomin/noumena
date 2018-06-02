@@ -46,7 +46,7 @@ def highlight(username,mode='keyword',keywords={},uimode='advanced',cboxes=''):
     '''return html-tagged corpus for highlighting by css/js
     will act according to mode (keyword or profile) passed to it'''
     cboxes = [int(n) for n in cboxes.split(',') if n] if cboxes else list()
-    print('pcboxbes:',cboxes)
+    print('pcboxes:',cboxes)
     time1 = time.time()
     with open('uploads/%s.corpusfile.txt' %username,'r') as f:
         sentences = sent_detector.tokenize(f.read().strip())

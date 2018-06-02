@@ -139,14 +139,14 @@
             <b style="display:block;padding-bottom:1ex;">Keywords and key phrases to highlight:</b>
             <input type = "hidden" id="scrollpos" name="scrollpos" value="{{scrollpos}}">
           {% for i in [1,2,3,4,5,6,7] %}
-          <div class="keywordcolor" style="{{'display:none;' if i>1 else ''}}">
-            <div style="float:left;">COLOR<br>
+          <div class="keywordcolor" style="{{'display:none;' if i>1 and not i==7 else ''}}">
+            <div style="float:left;">{{'GDPR<br>'|safe if i==7}} COLOR<br>
               <input type='text' id="color{{i}}" class='custom kwcolor' value="{{'#'+kwcolors[i]}}"/>
             </div>
-            <textarea name="keywords{{i}}" class="keywords" placeholder="keyword, key phrase, keyword2, keyword3">{{keywords[i]}}</textarea>
+            <textarea style="{{'display:none;' if i>1 else ''}}" name="keywords{{i}}" class="keywords" placeholder="keyword, key phrase, keyword2, keyword3">{{keywords[i]}}</textarea>
           </div>
           {% endfor %}
-          <input type="submit" value="UPDATE KEYWORDS" id="keywordbutton">
+          <input type="submit" value="UPDATE KEYWORDS &amp; PHRASES" id="keywordbutton">
           <br>
         </form>
       </div>

@@ -3,8 +3,8 @@ LOCAL = False
 VECTORS_ENABLED = True
 
 #uncomment if local dev env
-#LOCAL = True
-#VECTORS_ENABLED = False
+LOCAL = True
+VECTORS_ENABLED = False
 
 #terms for checking against phrase vectors (where the result is >0.8) in the user's document
 GDPRVECTORS = '''your data,
@@ -16,6 +16,7 @@ personal information'''
 #terms to check for simple matches against the user's document
 GDPRWORDS = ''' personal information,
 personally identifiable,
+phone number,
 personal data,
 your data,
 general data protection regulation,

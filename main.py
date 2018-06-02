@@ -19,6 +19,50 @@ def get_db():
 #----utility functions:
 def loggedin(): return 'username' in session
 
+def login(username,password,admin=False):
+    if password == None: password=''
+    salt = b'\xebE\xc5\x87\x80\x817\xde*\xab\xbdX\xe9u;\xdd #\x7f\x0b'
+    #should store a unique salt for each user in a later version
+    password = str(binascii.hexlify(hashlib.pbkdf2_hmac('sha256',bytes(password,'utf8'),salt,10**5)))
+    cur = get_db().execute('SELECT * FROM users WHERE username=?', (username,))
+    result = cur.fetchone() 
+    if not 'uimode' in session: session['uimode'] = 'simple'
+    if result:
+        '''user exists, log them in'''
+        if result[1] != password and not admin:
+            return 'error, wrong password<br><a href="/">Home</a>'
+        session['username'] = username
+        session['mode'] = result[2]
+        session['low'] = result[3]
+        session['medium'] = result[4]
+        session['high'] = result[5]
+        session['risk'] = result[7]
+        session['filename'] = result[8]
+        session['scrollpos'] = result[9]
+        if result[6]:
+            session['files'] = True
+
+    else:
+        '''user does not exist, create account and log them in'''
+        db = get_db()
+        db.cursor().execute('''INSERT INTO users(username,password,mode,low,medium,high,risk) VALUES
+                            (?,?,?,'ff0','f80','f00','low')''', (username,password,'profile'))
+
+        group_keyword_defaults = {1:'example, example phrase, mail',2:'address',3:'telephone',4:'credit card',5:'location',6:'opt',7:''}
+        for group in range(1,8):
+            colors = ['ff0','f80','f00','0df','000','000','0f0']
+            db.cursor().execute('''INSERT INTO keywords(owner,groupnum,color,kwlist) VALUES
+                            (?,?,?,?)''', (username,group,colors[group-1],group_keyword_defaults[group]))
+        db.commit()
+        session['username'] = username
+        session['mode'] = 'keyword'
+        session['low'] = 'ff0'
+        session['medium'] = 'f80'
+        session['high'] = 'f00'
+        session['risk'] = 'low'
+        session['filename'] = "none"
+        session['scrollpos'] = '0'
+
 #per-request database connections for flask and sqlite
 @app.teardown_appcontext
 def close_connection(exception):
@@ -106,52 +150,12 @@ def settings():
     return 'done'
 
 @app.route('/login', methods=['POST'])
-def login():
+def loginroute():
     '''if username exists, log user in (displaying error if password is wrong)
     if not, create user account with that username'''
     username = request.form['username'].strip().lower()
     password = request.form['password']
-    salt = b'\xebE\xc5\x87\x80\x817\xde*\xab\xbdX\xe9u;\xdd #\x7f\x0b'
-    #should store a unique salt for each user in a later version
-    password = str(binascii.hexlify(hashlib.pbkdf2_hmac('sha256',bytes(password,'utf8'),salt,10**5)))
-    cur = get_db().execute('SELECT * FROM users WHERE username=?', (username,))
-    result = cur.fetchone() 
-    if not 'uimode' in session: session['uimode'] = 'simple'
-    if result:
-        '''user exists, log them in'''
-        if result[1] != password:
-            return 'error, wrong password<br><a href="/">Home</a>'
-        session['username'] = username
-        session['mode'] = result[2]
-        session['low'] = result[3]
-        session['medium'] = result[4]
-        session['high'] = result[5]
-        session['risk'] = result[7]
-        session['filename'] = result[8]
-        session['scrollpos'] = result[9]
-        if result[6]:
-            session['files'] = True
-
-    else:
-        '''user does not exist, create account and log them in'''
-        db = get_db()
-        db.cursor().execute('''INSERT INTO users(username,password,mode,low,medium,high,risk) VALUES
-                            (?,?,?,'ff0','f80','f00','low')''', (username,password,'profile'))
-
-        group_keyword_defaults = {1:'example, example phrase, mail',2:'address',3:'telephone',4:'credit card',5:'location',6:'opt'}
-        for group in range(1,7):
-            colors = ['ff0','f80','f00','0df','000','000','0f0']
-            db.cursor().execute('''INSERT INTO keywords(owner,groupnum,color,kwlist) VALUES
-                            (?,?,?,?)''', (username,group,colors[group-1],group_keyword_defaults[group]))
-        db.commit()
-        session['username'] = username
-        session['mode'] = 'keyword'
-        session['low'] = 'ff0'
-        session['medium'] = 'f80'
-        session['high'] = 'f00'
-        session['risk'] = 'low'
-        session['filename'] = "none"
-        session['scrollpos'] = '0'
+    login(username,password)
     return redirect('/')
 
 @app.route('/addtermsurl', methods=['POST'])
@@ -168,11 +172,12 @@ def addtermsurl():
             article.download()
             article.parse()
             if not article.text:
-                flash('Error: site returned no content')    
+                flash('Error: site returned no content -- please either switch to Advanced Mode and use file upload, or copy+paste the document into www.pastebin.com and then use the pastebin url here.')    
                 return redirect('/')
 
             tld = tldextract.extract(url)
-            fname = "text from %s.%s" %(tld.domain,tld.suffix)
+            #fname = "text from %s.%s" %(tld.domain,tld.suffix)
+            fname = url
 
             filepath=os.path.join(UPLOAD_FOLDER, username+'.corpusfile.txt')
             with open(filepath,'w') as f:
@@ -299,6 +304,12 @@ def admin_download():
     return Response(csvdata, mimetype="text/csv",
         headers={"Content-disposition": "attachment; filename=%s" %'surveydata.csv'})
 
+@app.route('/swapuser')
+def swapuser():
+    if session['username']=='admin':
+        login(request.args['user'],None,admin=True)
+    return redirect('/')
+
 @app.route('/admin')
 def admin():
     '''display admin UI to manage users and feedback / microCRM'''
@@ -309,7 +320,7 @@ def admin():
         results = list()
         for user in res:
             res2=db.cursor().execute("select * from keywords where owner = ?", (user['username'],))
-            gdict = {gid:{'color':'','keywords':''} for gid in range(1,7)}
+            gdict = {gid:{'color':'','keywords':''} for gid in range(1,8)}
             for group in res2:
                 gdict[group['groupnum']]['color'] = group['color']
                 gdict[group['groupnum']]['keywords'] = group['kwlist']
@@ -392,7 +403,7 @@ def home():
         db = get_db()
         res=db.cursor().execute('select * from keywords where owner = ?',(session['username'],)).fetchall()
         kwcolors = {r[1]:r[2] for r in res}
-        kwcolors[7] = '00dd00'
+        #kwcolors[7] = '00dd00'
         print('KWCOLORS:',kwcolors)
         keywords = {r[1]:r[3].lower() for r in res}
         filename = session['filename']

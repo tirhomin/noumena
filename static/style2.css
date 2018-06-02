@@ -126,7 +126,7 @@ form{margin:0; padding:0;}
 /* -------- left toolbar -------------- */
 .keywords{display:block; float:right; height:5em; min-width:33ex; margin-left:0.5ex;}
 .keywordcolor{
-  clear:both; overflow:auto; float:right; margin-bottom:1ex;}
+  clear:both; overflow:auto; float:left; margin-bottom:1ex;}
 #keywordbutton{
   background-color:#223766; border:0; color:white; border-radius:0.5ex;
   padding:1ex; box-shadow:1.5px 1.5px 1px #555;
