@@ -1,4 +1,8 @@
 # CHANGELOG
+June 05, 2018:
+* add article to GDPR flags
+  * change gdpr articles in nsettings.py to hash table to support article numbering
+  * add functions to highlighter.py to scan for articles relevant to detected section.
 
 June 02, 2018:
 * added wording directing users to use pastebin where applicable

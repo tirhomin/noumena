@@ -42,6 +42,22 @@ with open(os.getcwd()+'/static/admin.dict.txt') as f:
             l = line.split(',')
             admindict[l[0]] = ', '.join(l[1:])
 
+
+def get_articles(s2, KEYWORDS):
+    gdpr_articles = set()
+    for group in KEYWORDS.keys():
+        print('GROUP:',group)
+        for this_keyword in group:
+            definition = ''
+            tokenized = word_tokenize(s2)
+            if (this_keyword in tokenized or (' ' in this_keyword and this_keyword in s2)) and this_keyword:
+                print('22THIS KW:', this_keyword)
+                for k,v in nsettings.GDPR_ARTICLE_KEYS.items():
+                    if this_keyword.lower() in v:
+                        print('22THIS KEY:', k, this_keyword)
+                        gdpr_articles.add(k)
+    return gdpr_articles
+
 def highlight(username,mode='keyword',keywords={},uimode='advanced',cboxes=''):
     '''return html-tagged corpus for highlighting by css/js
     will act according to mode (keyword or profile) passed to it'''
@@ -78,27 +94,30 @@ def highlight(username,mode='keyword',keywords={},uimode='advanced',cboxes=''):
             for group in KEYWORDS.keys():
                 #FLAG means we found a keyword
                 FLAG = False
-                for snippet in group:
-                    #where "snippet" is our keyword and s is the line in the document. #s2 is just s.lower().strip()
+                for this_keyword in group:
+                    #where "this_keyword" is our keyword and s is the line in the document. #s2 is just s.lower().strip()
                     definition = ''
                     tokenized = word_tokenize(s2)
                     #            keyword                            keyphrase 
-                    if (snippet in tokenized or (' ' in snippet and snippet in s2)) and snippet:
-                        if snippet in admindict:
-                            definition = admindict[snippet]
+                    if (this_keyword in tokenized or (' ' in this_keyword and this_keyword in s2)) and this_keyword:
+                        if this_keyword in admindict:
+                            definition = admindict[this_keyword]
                         else:
                             try:
                                 #try to find in wordnet
-                                definition = wordnet.synsets(snippet)[0].definition()
+                                definition = wordnet.synsets(this_keyword)[0].definition()
                             except Exception as e:
                                 #notfound
                                 definition = 'not in dictionary'
                         flagoffset = (len(s)//64) + 2
+
                         #the GDPR flag to display on the right of page
+                        gdpr_articles = get_articles(s2, KEYWORDS)
+                        gdpr_artstr = '(art. %s)' %(', '.join([str(i) for i in gdpr_articles]))
                         gdprflag = '''<div style="margin-top:-%drem"; class="gdpr-flag">\
                                         <div class="gdpr-flagarrow"></div>\
-                                        <div class="gdpr-flagtext">GDPR</div>\
-                                    </div>''' %(flagoffset)
+                                        <div class="gdpr-flagtext">GDPR %s</div>\
+                                    </div>''' %(flagoffset, gdpr_artstr)
 
                         #only show GDPR flag if found gdpr keyword or vector match.
                         #TODO: gdpr is a hidden group 7, user only gets 6 keyword groups
@@ -112,7 +131,7 @@ def highlight(username,mode='keyword',keywords={},uimode='advanced',cboxes=''):
                                     <span class="color group%s">\
                                     <span class="word">keyword: (%s)</span>\
                                     <span class="definition">%s</span>%s</span>
-                                    %s''' %(line_no,'checked' if line_no in cboxes else '',KEYWORDS[group],snippet,definition,s,gdprflag)
+                                    %s''' %(line_no,'checked' if line_no in cboxes else '',KEYWORDS[group],this_keyword,definition,s,gdprflag)
                         FLAG = True
                         break
                 if FLAG: break

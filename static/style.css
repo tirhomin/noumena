@@ -22,11 +22,13 @@ html,body{height:100%; margin:0;}
     display:inline-block;
     margin:0; padding:0;
     vertical-align:top;
+    border-top:0.5px solid #555;
+    font-size:0.8rem;
     line-height:2.5rem;
     min-height:2.5rem;
     text-align:center;
     margin-left:-0.4rem;
-    width:12ex; background-color:#0B0; 
+    width:24ex; background-color:#0B0; 
     box-shadow:1px 1px 1px #444;
     border-top-right-radius:0.5ex;
     border-bottom-right-radius:0.5ex;

@@ -13,31 +13,29 @@ sensitive information,
 sensitive data,
 personal information'''
 
+GDPR_ARTICLE_KEYS = {
+                7:['consent'],
+                8:['child'],
+                9:['special categor'],
+                10:['offence', 'criminal', 'crime'],
+                13:['personal data', 'your data', 'personal information', 'personally identifiable', 'your information', 'we collect'],
+                15:['access your', 'request a copy', 'obtain a copy'],
+                16:['inaccurate', 'rectification'],
+                17:['erasure', 'forgotten', 'delete your', 'remove your', 'delete your'],
+                18:['restrict'],
+                20:['export', 'portability'],
+                21:['right to object', 'opt-out'],
+                32:['encryption','security'],
+                34:['breach'],
+                }
+
 #terms to check for simple matches against the user's document
-GDPRWORDS = ''' personal information,
-personally identifiable,
-phone number,
-personal data,
-your data,
-general data protection regulation,
-your information,
-european union,
-gather data,
-gather information,
-private information,
-private data,
-data protection,
-sensitive data,
-sensitive information,
-information about you,
-information we collect,
-data we collect,
-information we collect,
-we collect data,
-we collect information,
-share with us,
-share information,
-share data'''
+GDPRWORDS = set()
+
+for k,v in GDPR_ARTICLE_KEYS.items():
+    for v2 in v:
+        GDPRWORDS.add(v2)
+GDPRWORDS = ',\n'.join(GDPRWORDS)
 
 QUESTIONS = ('Overall, I am satisfied with how easy it is to use this system.',
                         'It was simple to use this system.',
