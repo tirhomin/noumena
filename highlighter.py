@@ -46,12 +46,12 @@ with open(os.getcwd()+'/static/admin.dict.txt') as f:
 def get_articles(s2, KEYWORDS):
     gdpr_articles = set()
     for group in KEYWORDS.keys():
-        print('GROUP:',group)
+        #print('GROUP:',group)
         for this_keyword in group:
             definition = ''
             tokenized = word_tokenize(s2)
             if (this_keyword in tokenized or (' ' in this_keyword and this_keyword in s2)) and this_keyword:
-                print('22THIS KW:', this_keyword)
+                #print('22THIS KW:', this_keyword)
                 for k,v in nsettings.GDPR_ARTICLE_KEYS.items():
                     if this_keyword.lower() in v:
                         print('22THIS KEY:', k, this_keyword)
@@ -64,11 +64,13 @@ def highlight(username,mode='keyword',keywords={},uimode='advanced',cboxes=''):
     cboxes = [int(n) for n in cboxes.split(',') if n] if cboxes else list()
     print('pcboxes:',cboxes)
     time1 = time.time()
-    with open('uploads/%s.corpusfile.txt' %username,'r') as f:
-        sentences = sent_detector.tokenize(f.read().strip())
-        #f.seek(0); document = f.readlines(); sentences = list()
-        #for s in document: sentences += sent_detector.tokenize(s)
-
+    try:
+        with open('uploads/%s.corpusfile.txt' %username,'r') as f:
+            sentences = sent_detector.tokenize(f.read().strip())
+            #f.seek(0); document = f.readlines(); sentences = list()
+            #for s in document: sentences += sent_detector.tokenize(s)
+    except:
+        return None
     #assign a color to a list of keywords, to highlight that sentence
     KEYWORDS = dict()
     if mode == 'keyword':
@@ -113,7 +115,7 @@ def highlight(username,mode='keyword',keywords={},uimode='advanced',cboxes=''):
 
                         #the GDPR flag to display on the right of page
                         gdpr_articles = get_articles(s2, KEYWORDS)
-                        gdpr_artstr = '(art. %s)' %(', '.join([str(i) for i in gdpr_articles]))
+                        gdpr_artstr = '(a.%s)' %(', '.join([str(i) for i in gdpr_articles]))
                         gdprflag = '''<div style="margin-top:-%drem"; class="gdpr-flag">\
                                         <div class="gdpr-flagarrow"></div>\
                                         <div class="gdpr-flagtext">GDPR %s</div>\
@@ -126,7 +128,8 @@ def highlight(username,mode='keyword',keywords={},uimode='advanced',cboxes=''):
                         if not vecfound and gnum!=7:
                             gdprflag=''
                         
-                        result += '''<div style="display:inline-block; float:left; margin-left:-5ex; padding-right:2ex; transform:scale(1.75);"\
+                        result += '''<div style="display:inline-block; float:left;\
+                        margin-left:-4ex; transform:scale(1.75);"\
                                         class="usercheckbox"><input type="checkbox" name="line-%d" class="pcbox" %s autocomplete=off></div>\
                                     <span class="color group%s">\
                                     <span class="word">keyword: (%s)</span>\

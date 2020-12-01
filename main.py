@@ -1,13 +1,17 @@
 '''single-page web application which takes keywords file and text file,
     and highlights text file according to keywords file and mode'''
-from gevent import monkey, wsgi; monkey.patch_all()
+from gevent import monkey
+monkey.patch_all()
+from gevent.pywsgi import WSGIServer
+import werkzeug.serving
+
 import os, csv, hashlib, binascii, sqlite3, highlighter, datetime, tldextract, time
 from flask import Flask,g,flash,request,redirect,render_template,session, Response
 from nsettings import QUESTIONS
 from newspaper import Article
-import nsettings
+import nsettings, socket
 app = Flask(__name__)
-app.secret_key = b'\x95W\xed\xed.g\x97((-&\x4b\x92\xf2\x2dGZBMG+O\x919\xe5\xc76A\xcc\x8b\xdb}W';
+app.secret_key = b'\x95W\xed\xed.g\x97((-2&\x4b\x92\xf2\xdb}W'
 
 #-----database stuff for Flask:
 DATABASE = 'app.db'
@@ -19,9 +23,12 @@ def get_db():
 #----utility functions:
 def loggedin(): return 'username' in session
 
-def login(username,password,admin=False):
+
+def login(username,password,admin=False, pro_upgrade=False, friendemail = ''):
+    LOGIN_RESULTS = {'already_upgraded': False}
     if password == None: password=''
     salt = b'\xebE\xc5\x87\x80\x817\xde*\xab\xbdX\xe9u;\xdd #\x7f\x0b'
+    if friendemail: pro_upgrade = 1
     #should store a unique salt for each user in a later version
     password = str(binascii.hexlify(hashlib.pbkdf2_hmac('sha256',bytes(password,'utf8'),salt,10**5)))
     cur = get_db().execute('SELECT * FROM users WHERE username=?', (username,))
@@ -39,14 +46,22 @@ def login(username,password,admin=False):
         session['risk'] = result[7]
         session['filename'] = result[8]
         session['scrollpos'] = result[9]
+        session['pro_upgrade'] = result[13]
+        if result[13]:
+            LOGIN_RESULTS['already_upgraded'] = True
+        if pro_upgrade or friendemail:
+            db=get_db()
+            db.cursor().execute("UPDATE users SET pro_upgrade = 1, friendemail = ? WHERE username = ?", (friendemail, session['username'],))
+            session['pro_upgrade'] =1 
+            db.commit()
         if result[6]:
             session['files'] = True
-
+        print('LOGGED IN EXISTING USER')
     else:
         '''user does not exist, create account and log them in'''
         db = get_db()
-        db.cursor().execute('''INSERT INTO users(username,password,mode,low,medium,high,risk) VALUES
-                            (?,?,?,'ff0','f80','f00','low')''', (username,password,'profile'))
+        db.cursor().execute('''INSERT INTO users(username,password,mode,low,medium,high,risk,pro_upgrade, friendemail) VALUES
+                            (?,?,?,'ff0','f80','f00','low',?,?)''', (username,password,'profile',pro_upgrade, friendemail))
 
         group_keyword_defaults = {1:'example, example phrase, mail',2:'address',3:'telephone',4:'credit card',5:'location',6:'opt',7:''}
         for group in range(1,8):
@@ -62,6 +77,12 @@ def login(username,password,admin=False):
         session['risk'] = 'low'
         session['filename'] = "none"
         session['scrollpos'] = '0'
+        session['pro_upgrade'] = pro_upgrade
+        print("CREATED NEW USER")
+
+    print('USERNAME: ', session, session['username'])
+
+    return LOGIN_RESULTS
 
 #per-request database connections for flask and sqlite
 @app.teardown_appcontext
@@ -76,6 +97,21 @@ def before_request():
     session.modified = True
 
 #----routes:
+@app.route('/upgrade', methods=['POST','GET'])
+def upgrade_route():
+    if request.method=='GET':
+        return render_template('upgrade.html')
+
+    if 'username' in session:
+        friendemail = request.form['friendemail']
+        db=get_db()
+        db.cursor().execute("UPDATE users SET pro_upgrade = 1, friendemail = ? WHERE username = ?", (friendemail, session['username'],))
+        session['pro_upgrade'] =1 
+        db.commit()
+        return redirect('/payment')
+    return redirect('/')
+    
+
 @app.route('/simple')
 def uimodesimple():
     '''switch to simple UI'''
@@ -155,13 +191,22 @@ def loginroute():
     if not, create user account with that username'''
     username = request.form['username'].strip().lower()
     password = request.form['password']
-    login(username,password)
+    friendemail = request.form['friendemail']
+    print("RVALS: ", request.values)
+    pro_upgrade = 1 if 'noumenapro' in request.values else 0
+    login_info = login(username,password,admin=False, pro_upgrade=pro_upgrade, friendemail=friendemail)
+    print('LOGIN INFO: ', login_info)
+    if type(login_info)==dict and not login_info['already_upgraded']:
+        if pro_upgrade:
+            return redirect('/payment')
     return redirect('/')
 
 @app.route('/addtermsurl', methods=['POST'])
 def addtermsurl():
     '''fetch privacy policy or terms of service document from URL; save as user's document'''
     UPLOAD_FOLDER = './uploads'
+    if not 'username' in session:
+        return "NOT LOGGED IN ?? "
     username=session['username']
     db = get_db()
 
@@ -328,6 +373,7 @@ def admin():
         from pprint import PrettyPrinter
         pp = PrettyPrinter(indent=4)
         pp.pprint(results[:4])
+        results.reverse()
         return render_template('admin.html',results=results)
     else:
         return redirect('/')
@@ -387,8 +433,20 @@ def feedback_post():
 @app.route('/help')
 def help():return render_template('help.html')
 
+@app.route('/payment')
+def payment():return render_template('payment.html')
+
 @app.route('/terms')
 def privacyterms():return render_template('terms.html')
+
+import geoip2.database
+GEOIP = geoip2.database.Reader('GeoLite2-Country.mmdb')
+def find_country(addr):
+    try:
+        return GEOIP.country(addr).country.names['en']
+    except Exception as e:
+        print('geoip error: ',e)
+        return 'None'
 
 @app.route('/')
 def home():
@@ -412,11 +470,13 @@ def home():
     if 'files' in session and 'username' in session:
         t1=time.time()
         cboxes = res=db.cursor().execute('select cboxes from users where username = ?',(session['username'],)).fetchone()[0]
-        print('CBOXES:',cboxes)
+        #print('CBOXES:',cboxes)
         corpus = highlighter.highlight(session['username'],keywords=keywords,uimode=session['uimode'], cboxes=cboxes)
-        print('highlight time:',time.time()-t1)
+        if not corpus:
+            corpus = 'No document added yet. Please add one.<br>(you can use the \'fetch document\' button above)'
+        #print('highlight time:',time.time()-t1)
         corpus = corpus.replace('\n','<br>')
-
+        #print('corpus::: ', corpus)
     elif 'username' in session:
         corpus = 'No document added yet. Please add one.<br>(you can use the \'fetch document\' button above)'
     else:
@@ -431,11 +491,49 @@ def home():
         template = 'simplehome.html'
     else:
         template = 'home.html'
-    return render_template(template,admin=admin,corpus=corpus, scrollpos=scrollpos,
-            loggedin=loggedin(), kwcolors=kwcolors, mode=mode, keywords=keywords, filename=filename)
 
+    EU = nsettings.EU
+    icons = {'pastbreach':0, 'international':0, 'gdpr':0, 'arbitration':0, 'other':0}
+    try:
+        if 'files' in session and 'username' in session:
+            with open('uploads/%s.corpusfile.txt' %session['username'],'r') as f:
+                text=f.read().lower()
+                if 'anonym' in text: icons['other']=1
+                if 'gdpr' in text or 'general data protection' in text: icons['gdpr']=1
+                if 'arbitration' in text: icons['arbitration']=1
+                
+                domain = ''
+                if session['filename'][:10] == 'text from ': 
+                    domain = session['filename'][11:]
+
+                if 'http' in session['filename']: 
+                    tld = tldextract.extract(session['filename'])
+                    domain = tld.domain+'.'+tld.suffix
+
+                if domain:
+                    hostip= socket.gethostbyname(domain)
+                    z=find_country(hostip)
+                    if not z.lower() in EU: icons['international']=1
+                    if domain in nsettings.breachdomains: icons['pastbreach']=1
+
+    except Exception as e:
+        print('exception: ',e)
+        pass
+    return render_template(template,admin=admin,corpus=corpus, scrollpos=scrollpos,
+            loggedin=loggedin(), kwcolors=kwcolors, mode=mode, keywords=keywords, filename=filename,
+            icons=icons,
+            pro_upgrade = session['pro_upgrade'] if 'pro_upgrade' in session else 0)
+
+'''
 if nsettings.LOCAL:
     app.run(host='0.0.0.0',port=8080, debug=True)
 else:
-    server = wsgi.WSGIServer(('0.0.0.0',8080), app)
+    server = pywsgi.WSGIServer(('0.0.0.0',8080), app)
     server.serve_forever()
+'''
+@werkzeug.serving.run_with_reloader
+def runServer():
+    app.debug = True
+    ws = WSGIServer(('0.0.0.0', 8080), app)
+    ws.serve_forever()
+runServer()
